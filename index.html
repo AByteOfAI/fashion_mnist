@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fashion MNIST Classification — Deep CNN & ML</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-elevated: #12121a;
+    --bg-card: #16161f;
+    --border: #1e1e2e;
+    --border-glow: #2a2a40;
+    --text: #e8e6e3;
+    --text-dim: #8a8a9a;
+    --text-muted: #55556a;
+    --accent: #f0c040;
+    --accent-dim: #f0c04020;
+    --blue: #5b8def;
+    --blue-dim: #5b8def15;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-glow) var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* --- GRAIN OVERLAY --- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 128px;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10,10,15,0.8);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* --- HERO --- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, var(--accent-dim) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(42px, 7vw, 90px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    max-width: 900px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.4s;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin-top: 28px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.6s;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 56px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.8s;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat-val {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .hero-stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .scroll-cue {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 1s;
+  }
+  .scroll-cue span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: var(--text-muted);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.5); transform-origin: top; }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* --- SECTIONS --- */
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 40px;
+  }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 640px;
+    font-size: 16px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 0 auto;
+    max-width: 1200px;
+  }
+
+  /* --- DATASET SECTION --- */
+  .dataset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .card:hover {
+    border-color: var(--border-glow);
+    transform: translateY(-2px);
+  }
+  .card-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+  .class-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .class-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    transition: background 0.2s;
+  }
+  .class-item:hover { background: var(--border); }
+  .class-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    width: 18px;
+  }
+  .class-name {
+    font-size: 14px;
+    color: var(--text);
+  }
+  .pixel-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pixel-stat:last-child { border-bottom: none; }
+  .pixel-stat-label { color: var(--text-dim); font-size: 14px; }
+  .pixel-stat-val {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .stat-bar-wrap {
+    flex: 1;
+    margin: 0 20px;
+    height: 4px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--orange));
+    border-radius: 2px;
+    transition: width 1.5s ease;
+  }
+
+  /* --- PIPELINE --- */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .pipe-step {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .pipe-step:hover { border-color: var(--accent); }
+  .pipe-num {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    opacity: 0.25;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .pipe-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .pipe-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .pipe-arrow {
+    position: absolute;
+    right: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 16px;
+    z-index: 2;
+  }
+
+  /* --- MODELS --- */
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .model-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .model-card:hover {
+    border-color: var(--border-glow);
+    transform: translateY(-3px);
+  }
+  .model-card-header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .model-card-header h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .model-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .badge-dl { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-dim); }
+  .badge-ml { color: var(--blue); border-color: var(--blue-dim); background: var(--blue-dim); }
+  .model-card-body { padding: 24px 32px 28px; }
+  .model-acc {
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .acc-highlight { color: var(--accent); }
+  .acc-normal { color: var(--blue); }
+  .model-acc-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .model-detail {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* --- ARCHITECTURE --- */
+  .arch-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .arch-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .arch-header {
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .arch-header h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .arch-header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .arch-body { padding: 28px 32px; }
+  .arch-flow {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 2.2;
+  }
+  .arch-layer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .arch-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .arch-connector {
+    width: 8px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .arch-connector::after {
+    content: '';
+    width: 1px;
+    height: 16px;
+    display: block;
+  }
+  .layer-text { color: var(--text-dim); }
+  .layer-text strong { color: var(--text); font-weight: 500; }
+  .layer-text .dim { color: var(--text-muted); font-size: 11px; }
+  .arch-params {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .arch-params span { color: var(--accent); }
+
+  /* --- RESULTS --- */
+  .results-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .result-big-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+  }
+  .result-big-card h3 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { font-size: 14px; color: var(--text-dim); }
+  .metric-val {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .val-good { color: var(--green); }
+  .val-warn { color: var(--orange); }
+
+  /* --- CHART BAR --- */
+  .chart-section { margin-top: 48px; }
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    height: 300px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .bar {
+    width: 100%;
+    max-width: 60px;
+    border-radius: 8px 8px 0 0;
+    transition: height 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+  .bar-dl { background: linear-gradient(180deg, var(--accent), #c49a20); }
+  .bar-ml { background: linear-gradient(180deg, var(--blue), #3a6cc7); }
+  .bar-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* --- PER CLASS --- */
+  .class-perf {
+    margin-top: 48px;
+  }
+  .perf-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 80px 80px 80px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .perf-row-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .perf-class {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .perf-bar-wrap {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .perf-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .perf-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: right;
+  }
+  .perf-flag {
+    display: inline-block;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+
+  /* --- IMAGE SECTION --- */
+  .img-section {
+    margin-top: 48px;
+  }
+  .img-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .img-card-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .img-card-header h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .img-card-header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .img-card-body {
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    background: var(--bg-elevated);
+  }
+  .img-card-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .confusion-insights {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 24px 32px;
+  }
+  .confusion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .confusion-arrow {
+    font-family: var(--font-mono);
+    color: var(--red);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .confusion-count {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  /* --- GRADCAM --- */
+  .gradcam-labels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 24px 32px;
+    border-top: 1px solid var(--border);
+  }
+  .gradcam-label {
+    text-align: center;
+  }
+  .gradcam-label strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .gradcam-label span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* --- LIMITATIONS / FUTURE --- */
+  .lf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .lf-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .lf-card h3 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .lf-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .lf-item:last-child { border-bottom: none; }
+  .lf-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* --- TEAM --- */
+
+  /* --- DOCUMENTS --- */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .doc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+  .doc-preview {
+    height: 180px;
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, var(--accent-dim));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .doc-card:hover .doc-preview::before { opacity: 1; }
+  .doc-icon {
+    position: relative;
+    z-index: 1;
+  }
+  .doc-icon svg {
+    width: 56px;
+    height: 56px;
+    opacity: 0.6;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .doc-card:hover .doc-icon svg {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  .doc-type-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--red);
+    color: white;
+    font-weight: 600;
+  }
+  .doc-body {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-body h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .doc-body p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 20px;
+  }
+  .doc-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .doc-meta-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .doc-meta-item svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0.6;
+  }
+  .doc-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .doc-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.25s;
+    cursor: pointer;
+    border: none;
+  }
+  .doc-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .doc-btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 600;
+  }
+  .doc-btn-primary:hover {
+    background: #ffd060;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--accent-dim);
+  }
+  .doc-btn-secondary {
+    background: var(--bg-elevated);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .doc-btn-secondary:hover {
+    border-color: var(--border-glow);
+    color: var(--text);
+    background: var(--border);
+  }
+
+  @media (max-width: 900px) {
+    .docs-grid { grid-template-columns: 1fr; }
+  }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .team-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .team-card:hover { border-color: var(--accent); }
+  .team-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-dim), var(--blue-dim));
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--accent);
+  }
+  .team-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .team-email {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .team-email:hover { color: var(--accent); }
+
+  /* --- FOOTER --- */
+  footer {
+    text-align: center;
+    padding: 60px 40px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+  footer p {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* --- FADE IN OBSERVER --- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 900px) {
+    .dataset-grid, .arch-container, .results-hero, .lf-grid { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr 1fr; }
+    .team-grid { grid-template-columns: 1fr; }
+    .perf-row { grid-template-columns: 100px 1fr 60px 60px 60px; }
+    .confusion-insights { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .hero-stats { gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .bar-chart { height: 220px; gap: 8px; }
+  }
+  @media (max-width: 600px) {
+    .pipeline { grid-template-columns: 1fr; }
+    .hero-stats { flex-direction: column; }
+    section { padding: 60px 20px; }
+    .nav-inner { padding: 0 20px; }
+    .gradcam-labels { grid-template-columns: 1fr; }
+    .perf-row { grid-template-columns: 100px 1fr 50px; }
+    .perf-row .hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">Fashion MNIST</div>
+    <ul class="nav-links">
+      <li><a href="#dataset">Dataset</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#analysis">Analysis</a></li>
+      <li><a href="#docs">Docs</a></li>
+      <li><a href="#team">Team</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">RAS598 · Fall 2024 · Arizona State University</div>
+  <h1>Fashion MNIST<br>Classification with<br><span>Deep Learning</span></h1>
+  <p class="hero-sub">A comparative study of CNN, ResNet, and traditional ML models on 70,000 fashion images — achieving 91% accuracy with interpretable predictions.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">91%</div>
+      <div class="hero-stat-label">Best Accuracy</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">7</div>
+      <div class="hero-stat-label">Models Compared</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">70K</div>
+      <div class="hero-stat-label">Images Classified</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">10</div>
+      <div class="hero-stat-label">Categories</div>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- DATASET -->
+<section id="dataset">
+  <div class="reveal">
+    <div class="section-label">01 — Dataset</div>
+    <div class="section-title">Fashion MNIST</div>
+    <div class="section-desc">A modern drop-in replacement for classic MNIST — 70,000 grayscale images of fashion products across 10 balanced categories.</div>
+  </div>
+  <div class="dataset-grid reveal">
+    <div class="card">
+      <div class="card-title">10 Categories</div>
+      <div class="class-grid">
+        <div class="class-item"><span class="class-id">0</span><span class="class-name">T-shirt/top</span></div>
+        <div class="class-item"><span class="class-id">5</span><span class="class-name">Sandal</span></div>
+        <div class="class-item"><span class="class-id">1</span><span class="class-name">Trouser</span></div>
+        <div class="class-item"><span class="class-id">6</span><span class="class-name">Shirt</span></div>
+        <div class="class-item"><span class="class-id">2</span><span class="class-name">Pullover</span></div>
+        <div class="class-item"><span class="class-id">7</span><span class="class-name">Sneaker</span></div>
+        <div class="class-item"><span class="class-id">3</span><span class="class-name">Dress</span></div>
+        <div class="class-item"><span class="class-id">8</span><span class="class-name">Bag</span></div>
+        <div class="class-item"><span class="class-id">4</span><span class="class-name">Coat</span></div>
+        <div class="class-item"><span class="class-id">9</span><span class="class-name">Ankle boot</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dataset Statistics</div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Training images</span>
+        <span class="pixel-stat-val">60,000</span>
+      </div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Test images</span>
+        <span class="pixel-stat-val">10,000</span>
+      </div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Image dimensions</span>
+        <span class="pixel-stat-val">28 × 28 px</span>
+      </div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Mean pixel intensity</span>
+        <span class="pixel-stat-val">72.94</span>
+      </div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Std deviation</span>
+        <span class="pixel-stat-val">90.02</span>
+      </div>
+      <div class="pixel-stat">
+        <span class="pixel-stat-label">Samples per class</span>
+        <span class="pixel-stat-val">6,000</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PREPROCESSING -->
+<section>
+  <div class="reveal">
+    <div class="section-label">02 — Preprocessing</div>
+    <div class="section-title">Data Pipeline</div>
+    <div class="section-desc">Four-step preprocessing transforms raw pixel data into model-ready inputs.</div>
+  </div>
+  <div class="pipeline reveal">
+    <div class="pipe-step">
+      <div class="pipe-num">01</div>
+      <div class="pipe-label">Load</div>
+      <div class="pipe-desc">Import from Keras Fashion MNIST API</div>
+      <span class="pipe-arrow">→</span>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">02</div>
+      <div class="pipe-label">Normalize</div>
+      <div class="pipe-desc">Scale pixels ÷ 255 to [0, 1] range</div>
+      <span class="pipe-arrow">→</span>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">03</div>
+      <div class="pipe-label">Reshape</div>
+      <div class="pipe-desc">(28, 28, 1) for CNN — flatten for ML</div>
+      <span class="pipe-arrow">→</span>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">04</div>
+      <div class="pipe-label">Split</div>
+      <div class="pipe-desc">Train / validation / test partitions</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MODELS -->
+<section id="models">
+  <div class="reveal">
+    <div class="section-label">03 — Models</div>
+    <div class="section-title">Seven Models Compared</div>
+    <div class="section-desc">Deep learning architectures benchmarked against five traditional ML methods to quantify the accuracy-complexity tradeoff.</div>
+  </div>
+  <div class="models-grid reveal">
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>ResNet</h3>
+        <span class="model-badge badge-dl">Deep Learning</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-highlight">~91%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">Residual blocks with skip connections solve vanishing gradients. Batch normalization and global average pooling keep it lightweight at only 38K parameters.</div>
+      </div>
+    </div>
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>CNN</h3>
+        <span class="model-badge badge-dl">Deep Learning</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-highlight">~91%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">Sequential architecture with progressive filter complexity (32→64→128). Three convolutional blocks with max pooling for spatial feature extraction.</div>
+      </div>
+    </div>
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>Random Forest</h3>
+        <span class="model-badge badge-ml">Traditional ML</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-normal">~89%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">Ensemble of decision trees operating on flattened 784-d vectors. Best traditional method — balances accuracy with training speed.</div>
+      </div>
+    </div>
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>SVM</h3>
+        <span class="model-badge badge-ml">Traditional ML</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-normal">~87%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">RBF kernel finds optimal hyperplanes for non-linear class separation. Strong accuracy but computationally expensive at scale.</div>
+      </div>
+    </div>
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>MLP</h3>
+        <span class="model-badge badge-ml">Traditional ML</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-normal">~85%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">Fully connected neural network with hidden layers. Captures non-linear patterns but lacks spatial awareness of image structure.</div>
+      </div>
+    </div>
+    <div class="model-card">
+      <div class="model-card-header">
+        <h3>Logistic Regression</h3>
+        <span class="model-badge badge-ml">Traditional ML</span>
+      </div>
+      <div class="model-card-body">
+        <div class="model-acc acc-normal">~83%</div>
+        <div class="model-acc-label">Test Accuracy</div>
+        <div class="model-detail">Linear baseline classifier. Fastest training time and full interpretability — serves as the performance floor for comparison.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="reveal">
+    <div class="section-label">04 — Architecture</div>
+    <div class="section-title">Network Design</div>
+    <div class="section-desc">Layer-by-layer breakdown of both deep learning architectures.</div>
+  </div>
+  <div class="arch-container reveal">
+    <div class="arch-card">
+      <div class="arch-header">
+        <h3>ResNet</h3>
+        <p>Residual Network with skip connections</p>
+      </div>
+      <div class="arch-body">
+        <div class="arch-flow">
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--accent)"></span><span class="layer-text"><strong>Input</strong> <span class="dim">28×28×1</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--blue)"></span><span class="layer-text"><strong>Conv2D</strong>(32, 3×3) + ReLU</span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--purple)"></span><span class="layer-text"><strong>MaxPool</strong>(2×2) <span class="dim">→ 13×13</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--green)"></span><span class="layer-text"><strong>ResBlock</strong> — Conv→BN→Conv→BN + Skip</span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--purple)"></span><span class="layer-text"><strong>MaxPool</strong>(2×2) <span class="dim">→ 6×6</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--green)"></span><span class="layer-text"><strong>ResBlock</strong> — Conv→BN→Conv→BN + Skip</span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--orange)"></span><span class="layer-text"><strong>GlobalAvgPool</strong> → Flatten</span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--red)"></span><span class="layer-text"><strong>Dense</strong>(10, Softmax)</span></div>
+        </div>
+        <div class="arch-params">Total: <span>38,154</span> parameters (148 KB)</div>
+      </div>
+    </div>
+    <div class="arch-card">
+      <div class="arch-header">
+        <h3>CNN</h3>
+        <p>Sequential convolutional network</p>
+      </div>
+      <div class="arch-body">
+        <div class="arch-flow">
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--accent)"></span><span class="layer-text"><strong>Input</strong> <span class="dim">28×28×1</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--blue)"></span><span class="layer-text"><strong>Conv2D</strong>(32, 3×3) <span class="dim">→ 26×26×32</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--purple)"></span><span class="layer-text"><strong>MaxPool</strong>(2×2) <span class="dim">→ 13×13×32</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--blue)"></span><span class="layer-text"><strong>Conv2D</strong>(64, 3×3) <span class="dim">→ 11×11×64</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--purple)"></span><span class="layer-text"><strong>MaxPool</strong>(2×2) <span class="dim">→ 5×5×64</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--blue)"></span><span class="layer-text"><strong>Conv2D</strong>(128, 3×3) <span class="dim">→ 3×3×128</span></span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--orange)"></span><span class="layer-text"><strong>Flatten</strong> <span class="dim">→ 1,152</span> → <strong>Dense</strong>(128, ReLU)</span></div>
+          <div class="arch-layer"><span class="arch-dot" style="background:var(--red)"></span><span class="layer-text"><strong>Dense</strong>(10, Softmax)</span></div>
+        </div>
+        <div class="arch-params">Filters: <span>32 → 64 → 128</span> (progressive)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="reveal">
+    <div class="section-label">05 — Results</div>
+    <div class="section-title">Performance Analysis</div>
+    <div class="section-desc">Both deep learning models converge to 91% validation accuracy with healthy training dynamics.</div>
+  </div>
+
+  <div class="results-hero reveal">
+    <div class="result-big-card">
+      <h3>ResNet Training</h3>
+      <div class="metric-row"><span class="metric-label">Train accuracy</span><span class="metric-val val-good">95%</span></div>
+      <div class="metric-row"><span class="metric-label">Val accuracy</span><span class="metric-val val-good">91%</span></div>
+      <div class="metric-row"><span class="metric-label">Train loss</span><span class="metric-val">0.10</span></div>
+      <div class="metric-row"><span class="metric-label">Val loss</span><span class="metric-val">0.30</span></div>
+      <div class="metric-row"><span class="metric-label">Epochs</span><span class="metric-val">20</span></div>
+      <div class="metric-row"><span class="metric-label">Overfit gap</span><span class="metric-val val-warn">~4%</span></div>
+    </div>
+    <div class="result-big-card">
+      <h3>CNN Training</h3>
+      <div class="metric-row"><span class="metric-label">Train accuracy</span><span class="metric-val val-good">96%</span></div>
+      <div class="metric-row"><span class="metric-label">Val accuracy</span><span class="metric-val val-good">91%</span></div>
+      <div class="metric-row"><span class="metric-label">Train loss</span><span class="metric-val">0.12</span></div>
+      <div class="metric-row"><span class="metric-label">Val loss</span><span class="metric-val">0.28</span></div>
+      <div class="metric-row"><span class="metric-label">Epochs</span><span class="metric-val">10</span></div>
+      <div class="metric-row"><span class="metric-label">Overfit gap</span><span class="metric-val val-warn">~5%</span></div>
+    </div>
+  </div>
+
+  <!-- BAR CHART -->
+  <div class="chart-section reveal">
+    <div class="card-title" style="margin-bottom:20px;">Model Accuracy Comparison</div>
+    <div class="bar-chart" id="barChart">
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--accent)">91%</span>
+        <div class="bar bar-dl" data-height="91"></div>
+        <span class="bar-label">ResNet</span>
+      </div>
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--accent)">91%</span>
+        <div class="bar bar-dl" data-height="91"></div>
+        <span class="bar-label">CNN</span>
+      </div>
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--blue)">89%</span>
+        <div class="bar bar-ml" data-height="89"></div>
+        <span class="bar-label">RF</span>
+      </div>
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--blue)">87%</span>
+        <div class="bar bar-ml" data-height="87"></div>
+        <span class="bar-label">SVM</span>
+      </div>
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--blue)">85%</span>
+        <div class="bar bar-ml" data-height="85"></div>
+        <span class="bar-label">MLP</span>
+      </div>
+      <div class="bar-col">
+        <span class="bar-val" style="color:var(--blue)">83%</span>
+        <div class="bar bar-ml" data-height="83"></div>
+        <span class="bar-label">LogReg</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PER CLASS -->
+  <div class="class-perf reveal">
+    <div class="card-title" style="margin-bottom:20px; margin-top: 48px;">Per-Class F1 Scores (ResNet)</div>
+    <div class="perf-row perf-row-header">
+      <span>Class</span>
+      <span>F1 Score</span>
+      <span style="text-align:right">Prec</span>
+      <span style="text-align:right" class="hide-mobile">Recall</span>
+      <span style="text-align:right" class="hide-mobile">F1</span>
+    </div>
+    <div class="perf-row" data-f1="98"><span class="perf-class">Trouser <span class="perf-flag">★</span></span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--green);"></div></div><span class="perf-val">0.98</span><span class="perf-val hide-mobile">0.99</span><span class="perf-val hide-mobile" style="color:var(--green)">0.98</span></div>
+    <div class="perf-row" data-f1="98"><span class="perf-class">Bag <span class="perf-flag">★</span></span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--green);"></div></div><span class="perf-val">0.97</span><span class="perf-val hide-mobile">0.99</span><span class="perf-val hide-mobile" style="color:var(--green)">0.98</span></div>
+    <div class="perf-row" data-f1="97"><span class="perf-class">Sandal <span class="perf-flag">★</span></span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--green);"></div></div><span class="perf-val">0.96</span><span class="perf-val hide-mobile">0.99</span><span class="perf-val hide-mobile" style="color:var(--green)">0.97</span></div>
+    <div class="perf-row" data-f1="96"><span class="perf-class">Sneaker</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--blue);"></div></div><span class="perf-val">0.94</span><span class="perf-val hide-mobile">0.98</span><span class="perf-val hide-mobile">0.96</span></div>
+    <div class="perf-row" data-f1="96"><span class="perf-class">Ankle boot</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--blue);"></div></div><span class="perf-val">1.00</span><span class="perf-val hide-mobile">0.92</span><span class="perf-val hide-mobile">0.96</span></div>
+    <div class="perf-row" data-f1="91"><span class="perf-class">Dress</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--blue);"></div></div><span class="perf-val">0.95</span><span class="perf-val hide-mobile">0.88</span><span class="perf-val hide-mobile">0.91</span></div>
+    <div class="perf-row" data-f1="88"><span class="perf-class">Pullover</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--blue);"></div></div><span class="perf-val">0.87</span><span class="perf-val hide-mobile">0.88</span><span class="perf-val hide-mobile">0.88</span></div>
+    <div class="perf-row" data-f1="88"><span class="perf-class">Coat</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--blue);"></div></div><span class="perf-val">0.88</span><span class="perf-val hide-mobile">0.87</span><span class="perf-val hide-mobile">0.88</span></div>
+    <div class="perf-row" data-f1="86"><span class="perf-class">T-shirt/top</span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--orange);"></div></div><span class="perf-val">0.81</span><span class="perf-val hide-mobile">0.91</span><span class="perf-val hide-mobile">0.86</span></div>
+    <div class="perf-row" data-f1="74"><span class="perf-class">Shirt <span class="perf-flag" style="color:var(--red)">⚠</span></span><div class="perf-bar-wrap"><div class="perf-bar" style="background: var(--red);"></div></div><span class="perf-val">0.79</span><span class="perf-val hide-mobile">0.71</span><span class="perf-val hide-mobile" style="color:var(--red)">0.74</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ANALYSIS -->
+<section id="analysis">
+  <div class="reveal">
+    <div class="section-label">06 — Analysis</div>
+    <div class="section-title">Confusion Matrix & Grad-CAM</div>
+    <div class="section-desc">Understanding what the model gets right, where it fails, and why it makes its predictions.</div>
+  </div>
+
+  <div class="img-section reveal">
+    <div class="img-card">
+      <div class="img-card-header">
+        <h3>Confusion Matrix</h3>
+        <p>ResNet predictions across all 10 categories (10,000 test samples)</p>
+      </div>
+      <div class="img-card-body">
+        <img src="confusion_matrix.png" alt="Confusion Matrix" />
+      </div>
+      <div class="confusion-insights">
+        <div class="confusion-item">
+          <span>Shirt</span>
+          <span class="confusion-arrow">→</span>
+          <span>T-shirt/top</span>
+          <span class="confusion-count">156</span>
+        </div>
+        <div class="confusion-item">
+          <span>Ankle boot</span>
+          <span class="confusion-arrow">→</span>
+          <span>Sneaker</span>
+          <span class="confusion-count">56</span>
+        </div>
+        <div class="confusion-item">
+          <span>Pullover</span>
+          <span class="confusion-arrow">→</span>
+          <span>Coat</span>
+          <span class="confusion-count">43</span>
+        </div>
+        <div class="confusion-item">
+          <span>Coat</span>
+          <span class="confusion-arrow">→</span>
+          <span>Pullover</span>
+          <span class="confusion-count">40</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="img-section reveal" style="margin-top:32px">
+    <div class="img-card">
+      <div class="img-card-header">
+        <h3>Grad-CAM Visualization</h3>
+        <p>Gradient-weighted Class Activation Mapping — where the model looks to make decisions</p>
+      </div>
+      <div class="img-card-body">
+        <img src="grad_cam.png" alt="Grad-CAM Visualization" />
+      </div>
+      <div class="gradcam-labels">
+        <div class="gradcam-label"><strong>Original</strong><span>True label: Ankle boot</span></div>
+        <div class="gradcam-label"><strong>Heatmap</strong><span>Yellow/red = high attention</span></div>
+        <div class="gradcam-label"><strong>Overlay</strong><span>Predicted: Ankle boot ✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LIMITATIONS & FUTURE -->
+<section>
+  <div class="reveal">
+    <div class="section-label">09 — Looking Ahead</div>
+    <div class="section-title">Limitations & Future Work</div>
+  </div>
+  <div class="lf-grid reveal">
+    <div class="lf-card">
+      <h3 style="color:var(--red)">Current Limitations</h3>
+      <div class="lf-item"><span class="lf-icon">◆</span><span>Grayscale images on white backgrounds limit real-world generalization</span></div>
+      <div class="lf-item"><span class="lf-icon">◆</span><span>Shirt vs. T-shirt confusion (F1: 0.74) due to similar silhouettes at 28×28</span></div>
+      <div class="lf-item"><span class="lf-icon">◆</span><span>~4–5% train-val gap indicates mild overfitting in both deep models</span></div>
+      <div class="lf-item"><span class="lf-icon">◆</span><span>No transfer learning explored for potential accuracy gains</span></div>
+    </div>
+    <div class="lf-card">
+      <h3 style="color:var(--green)">Future Directions</h3>
+      <div class="lf-item"><span class="lf-icon">◇</span><span>Extend to colored datasets with diverse backgrounds (e.g., DeepFashion)</span></div>
+      <div class="lf-item"><span class="lf-icon">◇</span><span>Add attention mechanisms for fine-grained collar/sleeve distinction</span></div>
+      <div class="lf-item"><span class="lf-icon">◇</span><span>Apply dropout and stronger data augmentation to reduce overfitting</span></div>
+      <div class="lf-item"><span class="lf-icon">◇</span><span>Fine-tune pretrained models like MobileNet or EfficientNet</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DOCUMENTS -->
+<section id="docs">
+  <div class="reveal">
+    <div class="section-label">08 — Documents</div>
+    <div class="section-title">Project Documents</div>
+    <div class="section-desc">Access the full presentation, detailed report, and source code documentation.</div>
+  </div>
+  <div class="docs-grid reveal">
+
+    <!-- Presentation -->
+    <div class="doc-card">
+      <div class="doc-preview">
+        <div class="doc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+            <polygon points="10,8 10,12 14,10" fill="var(--accent)" stroke="none"/>
+          </svg>
+        </div>
+        <span class="doc-type-badge">PDF</span>
+      </div>
+      <div class="doc-body">
+        <h3>Presentation Slides</h3>
+        <p>Complete 21-slide deck covering project motivation, methodology, all model architectures, results, confusion matrix analysis, and Grad-CAM interpretability.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+            21 slides
+          </span>
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            ~15 min read
+          </span>
+        </div>
+        <div class="doc-actions">
+          <a href="RASFINALppt.pdf" target="_blank" class="doc-btn doc-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View
+          </a>
+          <a href="RASFINALppt.pdf" download class="doc-btn doc-btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Part 1 -->
+    <div class="doc-card">
+      <div class="doc-preview">
+        <div class="doc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="8" y1="13" x2="16" y2="13"/>
+            <line x1="8" y1="17" x2="16" y2="17"/>
+            <line x1="8" y1="9" x2="10" y2="9"/>
+          </svg>
+        </div>
+        <span class="doc-type-badge">PDF</span>
+      </div>
+      <div class="doc-body">
+        <h3>Report — Part 1</h3>
+        <p>Full technical report: abstract, introduction, methodology, preprocessing pipeline, model descriptions, performance analysis, confusion matrices, and classification reports.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+            3 pages
+          </span>
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Results + Code
+          </span>
+        </div>
+        <div class="doc-actions">
+          <a href="Report_Part1.pdf" target="_blank" class="doc-btn doc-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View
+          </a>
+          <a href="Report_Part1.pdf" download class="doc-btn doc-btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Part 2 -->
+    <div class="doc-card">
+      <div class="doc-preview">
+        <div class="doc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <polyline points="16 13 22 12 16 6" transform="translate(-6,3) scale(0.5)"/>
+            <line x1="8" y1="17" x2="16" y2="17"/>
+            <line x1="8" y1="13" x2="12" y2="13"/>
+          </svg>
+        </div>
+        <span class="doc-type-badge">PDF</span>
+      </div>
+      <div class="doc-body">
+        <h3>Report — Part 2</h3>
+        <p>Complete source code with outputs: data loading, visualization, pixel analysis, ResNet &amp; CNN implementation, model training logs, confusion matrix generation, and classification reports.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+            6 pages
+          </span>
+          <span class="doc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Source Code
+          </span>
+        </div>
+        <div class="doc-actions">
+          <a href="Report_Part2.pdf" target="_blank" class="doc-btn doc-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View
+          </a>
+          <a href="Report_Part2.pdf" download class="doc-btn doc-btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="reveal">
+    <div class="section-label">10 — Team</div>
+    <div class="section-title">Authors</div>
+    <div class="section-desc">Arizona State University — RAS598: Robotic and Autonomous Systems, Fall 2024</div>
+  </div>
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-avatar">KA</div>
+      <div class="team-name">Karan Athrey</div>
+      <a href="mailto:kathrey@asu.edu" class="team-email">kathrey@asu.edu</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">AS</div>
+      <div class="team-name">Abhijit Sinha</div>
+      <a href="mailto:asinh117@asu.edu" class="team-email">asinh117@asu.edu</a>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">AC</div>
+      <div class="team-name">Anusha Chatterjee</div>
+      <a href="mailto:achatt53@asu.edu" class="team-email">achatt53@asu.edu</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Fashion MNIST Classification · <a href="https://github.com/AByteOfAI/fashion_mnist" target="_blank">View on GitHub</a></p>
+  <p style="margin-top:8px; opacity:0.5;">Arizona State University · RAS598 · Fall 2024</p>
+</footer>
+
+<script>
+// Intersection Observer for reveal animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Animate bar chart
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.bar').forEach(bar => {
+        const h = bar.dataset.height;
+        const minDisplay = 60;
+        const scaled = minDisplay + ((h - 80) / (91 - 80)) * (100 - minDisplay);
+        bar.style.height = Math.max(scaled, 40) + '%';
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+const barChart = document.getElementById('barChart');
+if (barChart) barObserver.observe(barChart);
+
+// Animate F1 bars
+const perfObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.perf-row[data-f1]').forEach((row, i) => {
+        setTimeout(() => {
+          const f1 = row.dataset.f1;
+          const bar = row.querySelector('.perf-bar');
+          if (bar) bar.style.width = f1 + '%';
+        }, i * 80);
+      });
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.class-perf').forEach(el => perfObserver.observe(el));
+
+// Smooth nav background on scroll
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  if (window.scrollY > 100) {
+    nav.style.borderBottomColor = 'var(--border-glow)';
+  } else {
+    nav.style.borderBottomColor = 'var(--border)';
+  }
+});
+</script>
+
+</body>
+</html>
