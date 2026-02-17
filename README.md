@@ -16,9 +16,13 @@
 [![NumPy](https://img.shields.io/badge/-NumPy-05122A?style=flat&logo=numpy)](#)&nbsp;
 [![Plotly](https://img.shields.io/badge/-Plotly-05122A?style=flat&logo=plotly)](#)
 
-</div>
+<br>
+
+### 🌐 [**View the Live Project Website →**](https://abyteofai.github.io/fashion_mnist/)
 
 <br>
+
+</div>
 
 > **TL;DR** — We built 7 models to classify 70k fashion images into 10 categories. Our ResNet and CNN both hit **91% accuracy**, outperforming traditional ML baselines (83–89%). Grad-CAM confirms the models focus on the right visual features.
 
@@ -190,9 +194,9 @@ All traditional models operate on **flattened 784-d vectors** (no spatial struct
 ```
 Accuracy (%)
 │
-│  91    91                        89               
-│  ┌──┐ ┌──┐                87    ┌──┐           85  
-│  │▓▓│ │▓▓│       83     ┌──┐    │░░│   ───    ┌──┐
+│  91    91                           89               
+│  ┌──┐ ┌──┐                87      ┌──┐          85  
+│  │▓▓│ │▓▓│       83      ┌──┐    │░░│   ───    ┌──┐
 │  │▓▓│ │▓▓│      ┌──┐    │░░│    │░░│   KNN    │░░│
 │  │▓▓│ │▓▓│      │░░│    │░░│    │░░│          │░░│
 │  │▓▓│ │▓▓│      │░░│    │░░│    │░░│          │░░│
@@ -293,6 +297,18 @@ The model correctly focuses on the **boot shaft and sole** — confirming it use
 
 <br>
 
+## ◈ Project Documents
+
+All project documents are available on the [**project website**](https://abyteofai.github.io/fashion_mnist/) or directly below:
+
+| Document | Description | Link |
+|----------|-------------|:----:|
+| **Presentation Slides** | 21-slide deck — motivation, models, results, Grad-CAM | [📄 View PDF](https://abyteofai.github.io/fashion_mnist/RASFINALppt.pdf) |
+| **Report — Part 1** | Full report: methodology, performance analysis, classification reports | [📄 View PDF](https://abyteofai.github.io/fashion_mnist/Report_Part1.pdf) |
+| **Report — Part 2** | Source code: data loading, training, evaluation, visualizations | [📄 View PDF](https://abyteofai.github.io/fashion_mnist/Report_Part2.pdf) |
+
+<br>
+
 ## ◈ Getting Started
 
 ```bash
@@ -314,15 +330,14 @@ X_train, X_test = X_train / 255.0, X_test / 255.0          # normalize
 X_train_cnn = X_train.reshape(-1, 28, 28, 1)                # reshape for CNN
 ```
 
-Full source code is available in `Report_Part1.pdf` and `Report_Part2.pdf`.
-
 <br>
 
 ## ◈ Repository Contents
 
 ```
 .
-├── README.md               ← you are here
+├── index.html               ← project website (GitHub Pages)
+├── README.md                ← you are here
 ├── RASFINALppt.pdf          ← presentation slides (21 slides)
 ├── Report_Part1.pdf         ← full report: methodology + results + code
 ├── Report_Part2.pdf         ← report continued: source code + outputs
@@ -359,5 +374,9 @@ Full source code is available in `Report_Part1.pdf` and `Report_Part2.pdf`.
 <div align="center">
 <sub>Arizona State University · RAS598: Robotic and Autonomous Systems · Fall 2024</sub>
 <br><br>
+
+### [🌐 Visit the Project Website](https://abyteofai.github.io/fashion_mnist/) &nbsp;·&nbsp; [📂 View on GitHub](https://github.com/AByteOfAI/fashion_mnist)
+
+<br>
 <sub>If this was helpful, a ⭐ on the repo would be appreciated!</sub>
 </div>
