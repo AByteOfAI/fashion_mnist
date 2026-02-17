@@ -100,9 +100,9 @@ Most pixels are black (background) — normalization is essential.
 
 ```
  ① LOAD           ② NORMALIZE        ③ RESHAPE           ④ SPLIT
- ─────────        ───────────        ──────────          ─────────
- Load from        Pixel values       (28,28,1) for CNN   Train / Val
- Keras API        ÷ 255 → [0,1]     Flatten for ML      / Test sets
+ ─────────   ->    ───────────   ->    ──────────    ->    ─────────
+ Load from        Pixel values       (28,28,1) for CNN    Train / Val
+ Keras API        ÷ 255 → [0,1]     Flatten for ML       / Test sets
 ```
 
 For traditional ML models, images are flattened from 28×28 matrices into 784-dimensional feature vectors.
@@ -194,9 +194,9 @@ All traditional models operate on **flattened 784-d vectors** (no spatial struct
 ```
 Accuracy (%)
 │
-│  91    91                           89               
-│  ┌──┐ ┌──┐                87      ┌──┐          85  
-│  │▓▓│ │▓▓│       83      ┌──┐    │░░│   ───    ┌──┐
+│  91    91                        89               
+│  ┌──┐ ┌──┐                87    ┌──┐           85  
+│  │▓▓│ │▓▓│       83     ┌──┐    │░░│   ───    ┌──┐
 │  │▓▓│ │▓▓│      ┌──┐    │░░│    │░░│   KNN    │░░│
 │  │▓▓│ │▓▓│      │░░│    │░░│    │░░│          │░░│
 │  │▓▓│ │▓▓│      │░░│    │░░│    │░░│          │░░│
